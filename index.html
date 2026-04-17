@@ -197,7 +197,7 @@
     </div>
 
     <script>
-        // --- JAVASCRIPT: THE BRAIN ---
+        // --- JAVASCRIPT: THE BRAIN & ENGINE ---
         lucide.createIcons();
 
         const lobbyScreen = document.getElementById('lobby-screen');
@@ -205,18 +205,21 @@
         const playBtn = document.getElementById('play-btn');
         const playerNameInput = document.getElementById('player-name');
         
-        // Avatar Logic (Using ultra-realistic/stylish placeholders)
+        // --- 1. NEW AVATARS (Premium Animated & Abstract) ---
         const currentAvatar = document.getElementById('current-avatar');
         const inGameAvatar = document.getElementById('in-game-avatar');
         const inGameName = document.getElementById('in-game-name');
+        
+        // Using DiceBear's premium "Micah" (animated style) and "Shapes" (abstract) libraries
         const avatars = [
-            "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80", // Stylish male
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=250&q=80", // Stylish female
-            "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=250&q=80", // Male, spectacles
-            "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80"  // Female, portrait
+            "https://api.dicebear.com/7.x/micah/svg?seed=Picazo1&backgroundColor=b6e3f4", // Cool animated character
+            "https://api.dicebear.com/7.x/shapes/svg?seed=Picazo2&backgroundColor=c0aede", // High-end abstract geometry
+            "https://api.dicebear.com/7.x/micah/svg?seed=Picazo3&backgroundColor=ffdfbf",  // Animated character 2
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Picazo4&backgroundColor=ffd5dc"  // Sleek animated robot
         ];
         
         let avatarIndex = 0;
+        currentAvatar.src = avatars[0]; // Set default on load
 
         document.getElementById('next-avatar').addEventListener('click', () => {
             avatarIndex = (avatarIndex + 1) % avatars.length;
@@ -228,7 +231,7 @@
             currentAvatar.src = avatars[avatarIndex];
         });
 
-        // The Fix to jump into the game perfectly
+        // --- 2. SCREEN TRANSITION ---
         playBtn.addEventListener('click', () => {
             const name = playerNameInput.value.trim();
             if (name === "") {
@@ -236,14 +239,139 @@
                 return;
             }
 
-            // Transfer lobby data to the game screen
             inGameName.textContent = name;
             inGameAvatar.src = avatars[avatarIndex];
 
-            // Switch screens
             lobbyScreen.classList.add('hidden');
             gamePage.classList.remove('hidden');
+            
+            // CRITICAL: Initialize canvas size after it becomes visible
+            setTimeout(initCanvas, 100); 
+        });
+
+        // --- 3. THE DRAWING ENGINE (Mobile Optimized) ---
+        const canvas = document.getElementById('drawingBoard');
+        const ctx = canvas.getContext('2d');
+        
+        let isDrawing = false;
+        let currentBrushColor = '#333333';
+        let currentBrushSize = 3;
+        let drawingHistory = [];
+
+        function initCanvas() {
+            // Make the canvas perfectly fit its container without stretching
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+            
+            // Set default background to white
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveState(); // Save blank canvas for Undo
+        }
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Check if it's a mobile touch or a desktop mouse click
+            if (e.touches && e.touches.length > 0) {
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            }
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function startPosition(e) {
+            isDrawing = true;
+            const pos = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            draw(e);
+        }
+
+        function endPosition() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.closePath();
+                saveState(); // Save state after lifting finger/mouse
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); // STOPS MOBILE SCREEN FROM SCROLLING WHILE DRAWING
+            
+            const pos = getCoordinates(e);
+            
+            ctx.lineWidth = currentBrushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = currentBrushColor;
+
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        // Mouse Events (Desktop)
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseout', endPosition);
+
+        // Touch Events (Mobile)
+        canvas.addEventListener('touchstart', startPosition, {passive: false});
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw, {passive: false});
+
+        // --- 4. TOOLBAR BUTTONS ---
+        const tools = document.querySelectorAll('.tool-btn');
+        
+        function setActiveTool(button) {
+            tools.forEach(btn => btn.classList.remove('active'));
+            if(button) button.classList.add('active');
+        }
+
+        // Pencil (Index 0 in toolbar)
+        tools[0].addEventListener('click', function() {
+            setActiveTool(this);
+            currentBrushColor = '#333333';
+            currentBrushSize = 3;
+        });
+
+        // Eraser (Index 1 in toolbar)
+        tools[1].addEventListener('click', function() {
+            setActiveTool(this);
+            currentBrushColor = '#ffffff'; // Draw with white to erase
+            currentBrushSize = 15; // Bigger size for eraser
+        });
+
+        // Undo Logic (Index 4)
+        function saveState() {
+            drawingHistory.push(canvas.toDataURL());
+            // Keep memory clear, only save last 10 strokes
+            if (drawingHistory.length > 10) drawingHistory.shift(); 
+        }
+
+        tools[4].addEventListener('click', () => {
+            if (drawingHistory.length > 1) {
+                drawingHistory.pop(); // Remove current state
+                const imgData = drawingHistory[drawingHistory.length - 1];
+                const img = new Image();
+                img.src = imgData;
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+            }
+        });
+
+        // Trash Can / Clear Screen (Index 5)
+        tools[5].addEventListener('click', () => {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveState();
         });
     </script>
-</body>
-</html>

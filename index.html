@@ -3,125 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Picazo - Lobby</title>
+    <title>Picazo</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-    <div class="bg-gradient"></div>
+    <div id="lobby-screen" class="active-screen">
+        
+        <div class="theme-toggle">
+            <i data-lucide="sun" class="icon-sun"></i>
+            <div class="toggle-track"><div class="toggle-knob"></div></div>
+            <i data-lucide="moon" class="icon-moon"></i>
+        </div>
 
-    <div id="lobby-screen" class="glass-panel">
-        <h1 class="game-title">PICAZO</h1>
-        <p class="subtitle">Customize your avatar and enter your name</p>
+        <div class="glass-card">
+            <div class="logo-container">
+                <div class="logo-icon"></div> <h1 class="logo-text">Picazo</h1>
+            </div>
+            <p class="subtitle">The Ultimate Drawing Game</p>
 
-        <div class="avatar-slider-container">
-            <button id="prev-avatar" class="slider-btn"><i data-lucide="chevron-left"></i></button>
-            
-            <div class="avatar-frame">
-                <img id="current-avatar" src="https://i.pravatar.cc/250?img=1" alt="Player Avatar">
+            <input type="text" id="player-name" class="name-input" placeholder="Enter your name" autocomplete="off">
+
+            <p class="avatar-label">Choose your avatar</p>
+            <div class="avatar-selector">
+                <button id="prev-avatar" class="arrow-btn"><i data-lucide="chevron-left"></i></button>
+                <div class="avatar-circle">
+                    <img id="current-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&hair=short&facialHair=beardLight" alt="Avatar">
+                </div>
+                <button id="next-avatar" class="arrow-btn"><i data-lucide="chevron-right"></i></button>
             </div>
 
-            <button id="next-avatar" class="slider-btn"><i data-lucide="chevron-right"></i></button>
-            
-            <button id="shuffle-avatar" class="slider-btn shuffle-btn"><i data-lucide="refresh-cw"></i></button>
+            <button id="play-btn" class="primary-btn">PLAY NOW</button>
+            <button class="secondary-btn">CREATE PRIVATE ROOM</button>
         </div>
 
-        <div class="input-group">
-            <input type="text" id="player-name" placeholder="Type your name..." maxlength="12" autocomplete="off">
-        </div>
-
-        <button id="join-btn" class="glass-btn">Join Game</button>
+        <p class="footer-text">Made with ❤️ for testing</p>
     </div>
 
-    <div id="notification-area"></div>
-
-    <div id="game-page" class="hidden-page">
-        <header id="game-header" class="glass-header">
-            <div class="header-zone header-left">
-                <div id="game-timer" class="glowing-timer">
-                    <i data-lucide="clock"></i>
-                    <span id="timer-display">60</span>
-                </div>
-                <div id="round-info" class="round-tracker">Round 1 of 5</div>
-            </div>
-            <div class="header-zone header-center">
-                <div id="word-display" class="word-blanks">_ _ _ _ _ (5)</div>
-            </div>
-            <div class="header-zone header-right">
-                <button id="mute-btn" class="mute-toggle"><i data-lucide="volume-2"></i></button>
-            </div>
-        </header>
-
-        <main id="game-content">
-            <div id="canvas-container" class="mobile-top-middle desktop-center-col">
-                <canvas id="drawing-canvas"></canvas>
-                <div id="drawing-toolbar" class="glass-pill hidden-toolbar">
-                    <button id="pencil-tool" class="tool-btn active-tool"><i data-lucide="pencil"></i></button>
-                    <div id="brush-size-tools" class="tool-options">...</div> 
-                    <button id="undo-btn" class="tool-btn"><i data-lucide="undo-2"></i></button>
-                    <button id="eraser-tool" class="tool-btn"><i data-lucide="eraser"></i></button>
-                    <div id="color-palette" class="tool-options">...</div> 
-                    <button id="shape-tool" class="tool-btn"><i data-lucide="scaling"></i></button>
-                    <button id="fill-btn" class="tool-btn"><i data-lucide="paint-bucket"></i></button>
-                    <button id="clear-canvas" class="tool-btn"><i data-lucide="trash-2"></i></button>
-                </div>
-                
-                 <div id="canvas-notifications" class="toast-stack"></div>
-
-                <div id="word-selection" class="hidden-word-cards glass-cards-container">
-                    <h3>Choose a Word (15s)</h3>
-                    <div id="timer-cards" class="cards-timer">15</div>
-                    <div class="word-cards-list">
-                        <button class="word-card glass-card">Card 1</button>
-                        <button class="word-card glass-card">Card 2</button>
-                        <button class="word-card glass-card">Card 3</button>
-                    </div>
-                </div>
-
-                <div id="waiting-screen" class="hidden-waiting frosted-overlay">
-                    Waiting for other players to join...
-                </div>
-            </div>
-
-            <div id="leaderboard-container" class="mobile-bottom-left desktop-left-col">
-                <div class="glass-panel leaderboard">
-                    <h2>Leaderboard</h2>
-                    <ul id="player-list">
-                        <li class="player-item current-drawer">
-                             <div class="player-avatar-frame square-avatar">
-                                <img src="https://i.pravatar.cc/100?u=current_drawer" alt="Player">
-                             </div>
-                             <span class="player-name">Drawer</span>
-                             <span class="player-score">0</span>
-                             <i class="drawing-indicator" data-lucide="pencil"></i>
-                             <div class="moderate-menu hidden-menu">
-                                 <button class="kick-btn">Kick</button>
-                                 <button class="mute-btn">Mute</button>
-                                 <button class="report-btn">Report</button>
-                             </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div id="chat-container" class="mobile-bottom-right desktop-right-col">
-                <div class="glass-panel chat">
-                    <h2>Chat</h2>
-                    <div id="chat-messages" class="chat-history">
-                        <p class="chat-msg">Player1: Guessing...</p>
-                         <p class="chat-msg correct-guess">Player2 guessed the word!</p> 
-                    </div>
-                    <input type="text" id="chat-input" placeholder="Type your guess...">
-                </div>
-            </div>
-        </main>
+    <div id="game-page" class="hidden-screen">
+        <h2 style="color: white; text-align: center; margin-top: 50px;">Game Screen Loading...</h2>
+        <p style="color: white; text-align: center;">(This proves the button works! We will build the canvas here next.)</p>
     </div>
 
     <script src="script.js"></script>
-    <script>
-        // Initialize the icons
-        lucide.createIcons();
-    </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

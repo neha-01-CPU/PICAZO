@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Picazo - Play & Guess</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="bg-gradient"></div>
+
+    <div id="lobby-screen" class="glass-panel">
+        <h1 class="game-title">PICAZO</h1>
+        <p class="subtitle">Select your avatar and enter your name</p>
+
+        <div class="avatar-slider-container">
+            <button id="prev-avatar" class="slider-btn"><i data-lucide="chevron-left"></i></button>
+            
+            <div class="avatar-frame">
+                <img id="current-avatar" src="https://i.pravatar.cc/250?img=11" alt="Player Avatar">
+            </div>
+
+            <button id="next-avatar" class="slider-btn"><i data-lucide="chevron-right"></i></button>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="player-name" placeholder="Type your name..." maxlength="12" autocomplete="off">
+        </div>
+
+        <button id="join-btn" class="glass-btn">Join Game</button>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Initialize the icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

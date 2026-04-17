@@ -49,7 +49,7 @@
         .avatar-selector { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
         
         .avatar-frame {
-            width: 110px; height: 110px; border-radius: 16px; /* Square frames with rounded edges */
+            width: 110px; height: 110px; border-radius: 16px;
             background: rgba(255,255,255,0.8); border: 3px solid #7c3aed;
             display: flex; justify-content: center; align-items: center; overflow: hidden;
             box-shadow: inset 0 4px 10px rgba(0,0,0,0.05);
@@ -66,7 +66,7 @@
         }
         .primary-btn:active { transform: scale(0.98); }
 
-        /* --- GAME SCREEN (MOBILE FIRST) --- */
+        /* --- GAME SCREEN --- */
         #game-page {
             height: 100%; width: 100%; padding: 10px;
             display: flex; flex-direction: column; gap: 10px;
@@ -86,23 +86,28 @@
         .mute-btn { background: none; border: none; color: #555; cursor: pointer; }
 
         .canvas-container {
-            flex: 1 1 50%; /* Takes up upper half perfectly */
+            flex: 1 1 50%;
             background: white; border-radius: 20px; position: relative;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
             display: flex; flex-direction: column;
         }
-        canvas { flex: 1; width: 100%; cursor: crosshair; }
+        canvas { flex: 1; width: 100%; cursor: crosshair; touch-action: none; }
         
         .toolbar {
-            height: 50px; background: rgba(248, 250, 252, 0.9); border-top: 1px solid #e2e8f0;
-            display: flex; justify-content: center; align-items: center; gap: 15px;
+            height: 55px; background: rgba(248, 250, 252, 0.95); border-top: 1px solid #e2e8f0;
+            display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 10px;
         }
-        .tool-btn { background: none; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .tool-btn { background: none; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
         .tool-btn.active { color: #7c3aed; }
+        
+        /* New Tools Styling */
+        .color-picker { width: 30px; height: 30px; border: none; border-radius: 50%; cursor: pointer; padding: 0; background: transparent; }
+        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker::-webkit-color-swatch { border: 2px solid #ddd; border-radius: 50%; }
+        .brush-slider { width: 60px; accent-color: #7c3aed; }
 
         .bottom-split {
-            flex: 1 1 40%; /* Takes up bottom half */
-            display: flex; gap: 10px;
+            flex: 1 1 40%; display: flex; gap: 10px;
         }
         
         .panel {
@@ -112,7 +117,6 @@
         }
         .panel h3 { font-size: 0.9rem; text-align: center; margin-bottom: 10px; color: #555; }
         
-        /* Leaderboard styling */
         .player-list { flex: 1; overflow-y: auto; list-style: none; }
         .player-item { display: flex; align-items: center; gap: 10px; padding: 5px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 5px; }
         .player-item img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
@@ -120,11 +124,11 @@
         .p-name { font-size: 0.85rem; font-weight: 700; }
         .p-score { font-size: 0.75rem; color: #666; }
 
-        /* Chat styling */
         .chat-history { flex: 1; overflow-y: auto; font-size: 0.85rem; margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
-        .chat-msg { padding: 5px 8px; background: rgba(255,255,255,0.7); border-radius: 8px; }
+        .chat-msg { padding: 6px 10px; background: rgba(255,255,255,0.8); border-radius: 8px; word-wrap: break-word; }
         .chat-system { color: #7c3aed; font-weight: bold; font-style: italic; background: none; }
         .chat-input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 0.9rem; }
+        .chat-input:focus { border: 1px solid #7c3aed; }
     </style>
 </head>
 <body>
@@ -134,13 +138,13 @@
             <h1 class="logo-text">Picazo</h1>
             <p class="subtitle">The Ultimate Drawing Game</p>
 
-            <input type="text" id="player-name" class="name-input" placeholder="Enter your name" autocomplete="off">
+            <input type="text" id="player-name" class="name-input" placeholder="Enter your name" autocomplete="off" maxlength="15">
 
             <p class="avatar-label">Choose your avatar</p>
             <div class="avatar-selector">
                 <button id="prev-avatar" class="arrow-btn"><i data-lucide="chevron-left"></i></button>
                 <div class="avatar-frame">
-                    <img id="current-avatar" src="https://i.pravatar.cc/250?img=11" alt="Avatar">
+                    <img id="current-avatar" src="" alt="Avatar">
                 </div>
                 <button id="next-avatar" class="arrow-btn"><i data-lucide="chevron-right"></i></button>
             </div>
@@ -162,13 +166,15 @@
 
         <div class="canvas-container">
             <canvas id="drawingBoard"></canvas>
+            
             <div class="toolbar">
-                <button class="tool-btn active"><i data-lucide="pencil" size="20"></i></button>
-                <button class="tool-btn"><i data-lucide="eraser" size="20"></i></button>
-                <button class="tool-btn"><i data-lucide="paint-bucket" size="20"></i></button>
-                <div style="width: 20px; height: 20px; background: black; border-radius: 50%; cursor: pointer;"></div>
-                <button class="tool-btn"><i data-lucide="undo-2" size="20"></i></button>
-                <button class="tool-btn"><i data-lucide="trash-2" size="20"></i></button>
+                <button id="tool-pencil" class="tool-btn active"><i data-lucide="pencil" size="20"></i></button>
+                <input type="color" id="tool-color" class="color-picker" value="#000000">
+                <input type="range" id="tool-size" class="brush-slider" min="1" max="30" value="3">
+                <button id="tool-eraser" class="tool-btn"><i data-lucide="eraser" size="20"></i></button>
+                <button id="tool-fill" class="tool-btn"><i data-lucide="paint-bucket" size="20"></i></button>
+                <button id="tool-undo" class="tool-btn"><i data-lucide="undo-2" size="20"></i></button>
+                <button id="tool-trash" class="tool-btn"><i data-lucide="trash-2" size="20"></i></button>
             </div>
         </div>
 
@@ -177,7 +183,7 @@
                 <h3>Players</h3>
                 <ul class="player-list">
                     <li class="player-item">
-                        <img id="in-game-avatar" src="https://i.pravatar.cc/250?img=11" alt="Player">
+                        <img id="in-game-avatar" src="" alt="Player">
                         <div class="player-info">
                             <span class="p-name" id="in-game-name">You</span>
                             <span class="p-score">0 pts <i data-lucide="pencil" size="10" style="color: #7c3aed;"></i></span>
@@ -187,180 +193,167 @@
             </div>
             <div class="panel chat">
                 <h3>Chat</h3>
-                <div class="chat-history">
+                <div class="chat-history" id="chat-box">
                     <span class="chat-msg chat-system">System: Game started!</span>
                 </div>
-                <input type="text" class="chat-input" placeholder="Type your guess...">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Type your guess..." autocomplete="off">
             </div>
         </div>
 
     </div>
 
     <script>
-        // --- JAVASCRIPT: THE BRAIN & ENGINE ---
+        // --- JAVASCRIPT: THE BRAIN & ENGINE V2 ---
         lucide.createIcons();
 
-        const lobbyScreen = document.getElementById('lobby-screen');
-        const gamePage = document.getElementById('game-page');
-        const playBtn = document.getElementById('play-btn');
-        const playerNameInput = document.getElementById('player-name');
-        
-        // --- 1. NEW AVATARS (Premium Animated & Abstract) ---
-        const currentAvatar = document.getElementById('current-avatar');
-        const inGameAvatar = document.getElementById('in-game-avatar');
-        const inGameName = document.getElementById('in-game-name');
-        
-        // Using DiceBear's premium "Micah" (animated style) and "Shapes" (abstract) libraries
+        // --- 1. 12 PREMIUM AVATARS ---
         const avatars = [
-            "https://api.dicebear.com/7.x/micah/svg?seed=Picazo1&backgroundColor=b6e3f4", // Cool animated character
-            "https://api.dicebear.com/7.x/shapes/svg?seed=Picazo2&backgroundColor=c0aede", // High-end abstract geometry
-            "https://api.dicebear.com/7.x/micah/svg?seed=Picazo3&backgroundColor=ffdfbf",  // Animated character 2
-            "https://api.dicebear.com/7.x/bottts/svg?seed=Picazo4&backgroundColor=ffd5dc"  // Sleek animated robot
+            "https://api.dicebear.com/7.x/micah/svg?seed=P1&backgroundColor=b6e3f4",  // Animated 1
+            "https://api.dicebear.com/7.x/shapes/svg?seed=P2&backgroundColor=c0aede", // Abstract 1
+            "https://api.dicebear.com/7.x/bottts/svg?seed=P3&backgroundColor=ffd5dc", // Robot 1
+            "https://api.dicebear.com/7.x/micah/svg?seed=P4&backgroundColor=ffdfbf",  // Animated 2
+            "https://api.dicebear.com/7.x/shapes/svg?seed=P5&backgroundColor=d1d4f9", // Abstract 2
+            "https://api.dicebear.com/7.x/micah/svg?seed=P6&backgroundColor=b6e3f4",  // Animated 3
+            "https://api.dicebear.com/7.x/bottts/svg?seed=P7&backgroundColor=c0aede", // Robot 2
+            "https://api.dicebear.com/7.x/shapes/svg?seed=P8&backgroundColor=ffd5dc", // Abstract 3
+            "https://api.dicebear.com/7.x/micah/svg?seed=P9&backgroundColor=ffdfbf",  // Animated 4
+            "https://api.dicebear.com/7.x/bottts/svg?seed=P10&backgroundColor=b6e3f4",// Robot 3
+            "https://api.dicebear.com/7.x/shapes/svg?seed=P11&backgroundColor=d1d4f9",// Abstract 4
+            "https://api.dicebear.com/7.x/micah/svg?seed=P12&backgroundColor=c0aede"  // Animated 5
         ];
-        
+
         let avatarIndex = 0;
-        currentAvatar.src = avatars[0]; // Set default on load
+        document.getElementById('current-avatar').src = avatars[avatarIndex];
 
         document.getElementById('next-avatar').addEventListener('click', () => {
             avatarIndex = (avatarIndex + 1) % avatars.length;
-            currentAvatar.src = avatars[avatarIndex];
+            document.getElementById('current-avatar').src = avatars[avatarIndex];
         });
 
         document.getElementById('prev-avatar').addEventListener('click', () => {
             avatarIndex = (avatarIndex - 1 + avatars.length) % avatars.length;
-            currentAvatar.src = avatars[avatarIndex];
+            document.getElementById('current-avatar').src = avatars[avatarIndex];
         });
 
-        // --- 2. SCREEN TRANSITION ---
-        playBtn.addEventListener('click', () => {
-            const name = playerNameInput.value.trim();
-            if (name === "") {
-                alert("Please enter a name!");
-                return;
-            }
+        // --- 2. SCREEN TRANSITION & START ENGINE ---
+        document.getElementById('play-btn').addEventListener('click', () => {
+            const name = document.getElementById('player-name').value.trim();
+            if (name === "") return alert("Please enter a name!");
 
-            inGameName.textContent = name;
-            inGameAvatar.src = avatars[avatarIndex];
+            document.getElementById('in-game-name').textContent = name;
+            document.getElementById('in-game-avatar').src = avatars[avatarIndex];
 
-            lobbyScreen.classList.add('hidden');
-            gamePage.classList.remove('hidden');
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('game-page').classList.remove('hidden');
             
-            // CRITICAL: Initialize canvas size after it becomes visible
             setTimeout(initCanvas, 100); 
         });
 
-        // --- 3. THE DRAWING ENGINE (Mobile Optimized) ---
+        // --- 3. THE DRAWING ENGINE WITH FULL TOOLS ---
         const canvas = document.getElementById('drawingBoard');
         const ctx = canvas.getContext('2d');
         
         let isDrawing = false;
-        let currentBrushColor = '#333333';
-        let currentBrushSize = 3;
+        let isErasing = false;
         let drawingHistory = [];
+        
+        // Tool Elements
+        const colorPicker = document.getElementById('tool-color');
+        const sizeSlider = document.getElementById('tool-size');
+        const btnPencil = document.getElementById('tool-pencil');
+        const btnEraser = document.getElementById('tool-eraser');
 
         function initCanvas() {
-            // Make the canvas perfectly fit its container without stretching
             canvas.width = canvas.parentElement.offsetWidth;
-            canvas.height = canvas.parentElement.offsetHeight;
+            canvas.height = canvas.parentElement.offsetHeight - 55; // minus toolbar height
             
-            // Set default background to white
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            saveState(); // Save blank canvas for Undo
+            saveState();
         }
 
-        function getCoordinates(e) {
+        function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            // Check if it's a mobile touch or a desktop mouse click
-            if (e.touches && e.touches.length > 0) {
-                return {
-                    x: e.touches[0].clientX - rect.left,
-                    y: e.touches[0].clientY - rect.top
-                };
-            }
-            return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+            if (e.touches) return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
 
         function startPosition(e) {
             isDrawing = true;
-            const pos = getCoordinates(e);
             ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
+            ctx.moveTo(getPos(e).x, getPos(e).y);
             draw(e);
         }
 
         function endPosition() {
-            if (isDrawing) {
-                isDrawing = false;
-                ctx.closePath();
-                saveState(); // Save state after lifting finger/mouse
-            }
+            if (isDrawing) { isDrawing = false; ctx.closePath(); saveState(); }
         }
 
         function draw(e) {
             if (!isDrawing) return;
-            e.preventDefault(); // STOPS MOBILE SCREEN FROM SCROLLING WHILE DRAWING
+            e.preventDefault(); 
             
-            const pos = getCoordinates(e);
-            
-            ctx.lineWidth = currentBrushSize;
+            ctx.lineWidth = sizeSlider.value;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.strokeStyle = currentBrushColor;
+            
+            if (isErasing) {
+                ctx.strokeStyle = "white";
+            } else {
+                ctx.strokeStyle = colorPicker.value;
+            }
 
-            ctx.lineTo(pos.x, pos.y);
+            ctx.lineTo(getPos(e).x, getPos(e).y);
             ctx.stroke();
         }
 
-        // Mouse Events (Desktop)
-        canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mouseup', endPosition);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseout', endPosition);
-
-        // Touch Events (Mobile)
+        // Canvas Listeners
+        canvas.addEventListener('mousedown', startPosition); canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseout', endPosition);
         canvas.addEventListener('touchstart', startPosition, {passive: false});
-        canvas.addEventListener('touchend', endPosition);
-        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', endPosition); canvas.addEventListener('touchmove', draw, {passive: false});
 
-        // --- 4. TOOLBAR BUTTONS ---
-        const tools = document.querySelectorAll('.tool-btn');
+        // --- 4. WIRING THE BUTTONS ---
         
-        function setActiveTool(button) {
-            tools.forEach(btn => btn.classList.remove('active'));
-            if(button) button.classList.add('active');
-        }
-
-        // Pencil (Index 0 in toolbar)
-        tools[0].addEventListener('click', function() {
-            setActiveTool(this);
-            currentBrushColor = '#333333';
-            currentBrushSize = 3;
+        // Pencil
+        btnPencil.addEventListener('click', () => {
+            isErasing = false;
+            btnPencil.classList.add('active');
+            btnEraser.classList.remove('active');
         });
 
-        // Eraser (Index 1 in toolbar)
-        tools[1].addEventListener('click', function() {
-            setActiveTool(this);
-            currentBrushColor = '#ffffff'; // Draw with white to erase
-            currentBrushSize = 15; // Bigger size for eraser
+        // Eraser
+        btnEraser.addEventListener('click', () => {
+            isErasing = true;
+            btnEraser.classList.add('active');
+            btnPencil.classList.remove('active');
         });
 
-        // Undo Logic (Index 4)
+        // Fill Bucket (Fills entire background)
+        document.getElementById('tool-fill').addEventListener('click', () => {
+            ctx.fillStyle = colorPicker.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveState();
+        });
+
+        // Clear Trash Can
+        document.getElementById('tool-trash').addEventListener('click', () => {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveState();
+        });
+
+        // Undo
         function saveState() {
             drawingHistory.push(canvas.toDataURL());
-            // Keep memory clear, only save last 10 strokes
-            if (drawingHistory.length > 10) drawingHistory.shift(); 
+            if (drawingHistory.length > 15) drawingHistory.shift(); 
         }
 
-        tools[4].addEventListener('click', () => {
+        document.getElementById('tool-undo').addEventListener('click', () => {
             if (drawingHistory.length > 1) {
-                drawingHistory.pop(); // Remove current state
-                const imgData = drawingHistory[drawingHistory.length - 1];
+                drawingHistory.pop(); 
                 const img = new Image();
-                img.src = imgData;
+                img.src = drawingHistory[drawingHistory.length - 1];
                 img.onload = () => {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
@@ -368,10 +361,27 @@
             }
         });
 
-        // Trash Can / Clear Screen (Index 5)
-        tools[5].addEventListener('click', () => {
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            saveState();
+        // --- 5. CHAT FUNCTIONALITY ---
+        const chatInput = document.getElementById('chat-input');
+        const chatBox = document.getElementById('chat-box');
+
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                const msgText = this.value.trim();
+                const name = document.getElementById('in-game-name').textContent;
+                
+                // Create new message HTML
+                const msgSpan = document.createElement('span');
+                msgSpan.className = 'chat-msg';
+                msgSpan.innerHTML = `<strong>${name}:</strong> ${msgText}`;
+                
+                chatBox.appendChild(msgSpan);
+                this.value = ''; // Clear input
+                
+                // Auto-scroll to bottom
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
         });
     </script>
+</body>
+</html>
